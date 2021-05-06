@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+        html {
+            height: 100%;
+        }
+
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        #box1 {
+            background-color: aqua;
+        }
+
+        #box2 {
+            background-color: lightgreen;
+        }
+
+        #partsBox {
+            width: 100%;
+            height: auto;
+            margin: 0;
+            letter-spacing: 0em;
+        }
+
+        .top {
+            width: 100%;
+            height: 100px;
+            margin: 0;
+        }
+
+        .box {
+            margin: 0;
+            width: 50%;
+            height: 100%;
+            display: inline-block;
+            letter-spacing: 0em; /* inline-blockの横幅補正 */
+            text-align: center;
+            vertical-align: top; /* inline-blockの高さズレ補正 */
+        }
+
+        .parts {
+            margin: 0;
+            padding: 1;
+            color: white;
+            width: 50px;
+            height: 50px;
+            display: inline-block;
+            text-align: center;
+            background-color: lime;
+        }
+
+        .wrapper {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            display: inline-block;
+            letter-spacing: -1em; /* inline-blockの横幅補正 */
+        }
+
+        #selector,
+        #editor {
+            height: calc(100% - 100px);
+            background-color: rgb(40, 40, 40);
+            overflow-x: scroll;
+            overflow-y: scroll;
+        }
+
+        #selector {
+            overflow-x: hidden; 
+            overflow-y: hidden;
+        }
+
+        h3 {
+            margin: 0;
+            border: 0;
+        }
+
+        button {
+            height: 50pt;
+            width: 50pt;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+        }
+
+        table {
+            width: 50px;
+            height: 50px;
+            box-sizing: border-box;
+            border-spacing: 0;
+            text-indent: 0;
+            table-layout: fixed;
+        }
+
+        td {
+            width: 50px;
+            height: 50px;
+            margin: 0;
+            padding: 0;
+            border: 1px solid darkgray;
+            line-height: 0;
+        }
+
+        .partsCell {
+            width: 100%;
+            height: 100%;
+        }
+        
+        svg {
+            margin: 0;
+            background-color: darkgreen;
+        }
+    </style>
+    <script>
+
+        /***** ドラッグ開始時の処理 *****/
+        function f_dragstart(event) {
+            //ドラッグするデータのid名をDataTransferオブジェクトにセット
+            event.dataTransfer.setData("text", event.target.id);
+        }
+
+        /***** ドラッグ要素がドロップ要素に重なっている間の処理 *****/
+        function f_dragover(event) {
+            //dragoverイベントをキャンセルして、ドロップ先の要素がドロップを受け付けるようにする
+            event.preventDefault();
+        }
+
+        /***** ドロップ時の処理 *****/
+        function setDrop(event) {
+            //ドラッグされたデータのid名をDataTransferオブジェクトから取得
+            var id_name = event.dataTransfer.getData("text");
+            //id名からドラッグされた要素を取得
+            var drag_elm = document.getElementById(id_name);
+            if(!event.target.isEqualNode(document.createElement("td"))) {
+                if(id_name == "dragging") drag_elm.id = "";
+                return;
+            } else if(id_name == "dragging") {
+                //ドロップ先にドラッグされた要素を追加
+                drag_elm.id = "";
+                event.currentTarget.appendChild(drag_elm);
+            } else {
+                var copy_elm = drag_elm.cloneNode(true);
+                copy_elm.id = "";
+                copy_elm.ondragstart = move_dragstart;
+                //ドロップ先にドラッグされた要素を追加
+                event.currentTarget.appendChild(copy_elm);
+            }
+            //エラー回避のため、ドロップ処理の最後にdropイベントをキャンセルしておく
+            event.preventDefault();
+        }
+
+        /***** ドラッグ開始時の処理 *****/
+        function move_dragstart(event) {
+            //ドラッグするデータのid名をDataTransferオブジェクトにセット
+            event.target.id = "dragging";
+            event.dataTransfer.setData("text", event.target.id);
+        }
+
+        function delDrop(event) {
+            //ドラッグされたデータのid名をDataTransferオブジェクトから取得
+            var id_name = event.dataTransfer.getData("text");
+            if(id_name != "dragging") return;
+            //id名からドラッグされた要素を取得
+            var drag_elm = document.getElementById(id_name);
+            drag_elm.remove();
+            //エラー回避のため、ドロップ処理の最後にdropイベントをキャンセルしておく
+            event.preventDefault();
+        }
+
+        function createElementFromHTML(html) {
+            const tempEl = document.createElement('div');
+            tempEl.innerHTML = html;
+            return tempEl.firstElementChild;
+        }
+
+        function createTable() {
+            const widthCells = 40;
+            const heightCells = 20;
+            let editorTable = document.getElementById("editorCell");
+            for (var i = 0; i < heightCells; i++) {
+                let tr = document.createElement("tr");
+                for (var j = 0; j < widthCells; j++) {
+                    let td = document.createElement("td");
+                    td.ondragover = f_dragover;
+                    td.ondrop = setDrop;
+                    tr.appendChild(td);
+                }
+                editorTable.appendChild(tr);
+            }
+        }
+    </script>
+</head>
+
+<body onload="createTable()">
+    <div class="wrapper">
+        <div class="box" id="box1">
+            <div class="top">
+                <h3>自動生成マップ</h3>
+            </div>
+            <div id="selector">
+                <iframe src="../"></iframe>
+            </div>
+        </div>
+        <div class="box" id="box2">
+            <div class="top">
+                <h3>カスタムCTCエディター</h3>
+                <div id="partsBox" class="wrapper" ondragover="f_dragover(event)" ondrop="delDrop(event)">
+                    <div id="parts1" class="parts" draggable="true" ondragstart="f_dragstart(event)"><svg width="50" height="50"><line x1="0" y1="25" x2="50" y2="25" style="stroke:white;stroke-width:10"/></svg></div>
+                    <div id="parts2" class="parts" draggable="true" ondragstart="f_dragstart(event)"><svg width="50" height="50"><line x1="25" y1="0" x2="25" y2="50" style="stroke:white;stroke-width:10"/></svg></div>
+                    <div id="parts3" class="parts" draggable="true" ondragstart="f_dragstart(event)"><svg width="50" height="50"><line x1="0" y1="25" x2="25" y2="0" style="stroke:white;stroke-width:10"/></svg></div>
+                    <div id="parts4" class="parts" draggable="true" ondragstart="f_dragstart(event)"><svg width="50" height="50"><line x1="25" y1="0" x2="50" y2="25" style="stroke:white;stroke-width:10"/></svg></div>
+                    <div id="parts5" class="parts" draggable="true" ondragstart="f_dragstart(event)"><svg width="50" height="50"><line x1="0" y1="25" x2="25" y2="50" style="stroke:white;stroke-width:10"/></svg></div>
+                    <div id="parts6" class="parts" draggable="true" ondragstart="f_dragstart(event)"><svg width="50" height="50"><line x1="25" y1="50" x2="50" y2="25" style="stroke:white;stroke-width:10"/></svg></div>
+                    <div id="parts7" class="parts" draggable="true" ondragstart="f_dragstart(event)"><svg width="50" height="50"><polyline  points="50,25 0,25 25,0" style="fill:darkgreen;stroke:white;stroke-width:10"/></svg></div>
+                    <div id="parts8" class="parts" draggable="true" ondragstart="f_dragstart(event)"><svg width="50" height="50"><polyline  points="0,25 50,25 25,0" style="fill:darkgreen;stroke:white;stroke-width:10"/></svg></div>
+                </div>
+            </div>
+            <div id="editor">
+                <table id="editorCell"></table>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
