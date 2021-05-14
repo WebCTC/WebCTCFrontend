@@ -7,6 +7,7 @@
     <style>
         html {
             height: 100%;
+            user-select: none;
         }
 
         body {
@@ -139,21 +140,24 @@
         function setDrop(event) {
             //ドラッグされたデータのid名をDataTransferオブジェクトから取得
             var id_name = event.dataTransfer.getData("text");
-            //id名からドラッグされた要素を取得
-            var drag_elm = document.getElementById(id_name);
-            if(!event.target.isEqualNode(document.createElement("td"))) {
-                if(id_name == "dragging") drag_elm.id = "";
-                return;
-            } else if(id_name == "dragging") {
-                //ドロップ先にドラッグされた要素を追加
-                drag_elm.id = "";
-                event.currentTarget.appendChild(drag_elm);
-            } else {
-                var copy_elm = drag_elm.cloneNode(true);
-                copy_elm.id = "";
-                copy_elm.ondragstart = move_dragstart;
-                //ドロップ先にドラッグされた要素を追加
-                event.currentTarget.appendChild(copy_elm);
+            if(id_name == "dragging" || id_name.match(/parts+/)) {
+                //id名からドラッグされた要素を取得
+                var drag_elm = document.getElementById(id_name);
+                if(event.target.isEqualNode(document.createElement("td"))) {
+                    if(id_name == "dragging") {
+                        drag_elm.id = "";
+                        //ドロップ先にドラッグされた要素を追加
+                        event.currentTarget.appendChild(drag_elm);
+                    } else {
+                        var copy_elm = drag_elm.cloneNode(true);
+                        copy_elm.id = "";
+                        copy_elm.ondragstart = move_dragstart;
+                        //ドロップ先にドラッグされた要素を追加
+                        event.currentTarget.appendChild(copy_elm);
+                    }
+                } else {
+                    if(id_name == "dragging") drag_elm.id = "";
+                }
             }
             //エラー回避のため、ドロップ処理の最後にdropイベントをキャンセルしておく
             event.preventDefault();
@@ -169,18 +173,13 @@
         function delDrop(event) {
             //ドラッグされたデータのid名をDataTransferオブジェクトから取得
             var id_name = event.dataTransfer.getData("text");
-            if(id_name != "dragging") return;
-            //id名からドラッグされた要素を取得
-            var drag_elm = document.getElementById(id_name);
-            drag_elm.remove();
+            if(id_name == "dragging") {
+                //id名からドラッグされた要素を取得
+                var drag_elm = document.getElementById(id_name);
+                drag_elm.remove();
+            }
             //エラー回避のため、ドロップ処理の最後にdropイベントをキャンセルしておく
             event.preventDefault();
-        }
-
-        function createElementFromHTML(html) {
-            const tempEl = document.createElement('div');
-            tempEl.innerHTML = html;
-            return tempEl.firstElementChild;
         }
 
         function createTable() {
